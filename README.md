@@ -20,7 +20,7 @@ a python and vue gamesystem project for drawguess(你画我猜) and gobang(五�
 conn = torndb.Connection(host='127.0.0.1',
                          database='partyplay',
                          user='root',
-                         password='jiang951', )
+                         password='******', ) # need change to your password
 ```
 - start redis server and `cd game_server` and use `python server` to start server
 
