@@ -22,7 +22,7 @@ conn = torndb.Connection(host='127.0.0.1',
                          user='root',
                          password='******', ) # need change to your password
 ```
-- start redis server and `cd game_server` and use `python server` to start server
+- start redis server and `cd game_server` and use `python server.py` to start server
 
 ## screenshot
 ![hall](./screenshot/screenshot1.png)
