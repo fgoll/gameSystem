@@ -13,7 +13,7 @@ a python and vue gamesystem project for drawguess(你画我猜) and gobang(五�
 
 ## Usage
 
-- `cd game_vue` and use `npm run dev` to start vue project
+- `cd game_vue` and use 1.`npm install` and 2.`npm run dev` to start vue project
 - create mysql database and named partyplay, next import sql.sql to partyplay;
 - `cd game_server` and `vim common.py` to change password for Mysql connect:
 ```python
