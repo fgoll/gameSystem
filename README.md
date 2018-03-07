@@ -3,8 +3,8 @@ a python and vue gamesystem project for drawguess(你画我猜) and gobang(五�
 
 ## demo: [gamesystem link](http://111.230.174.196:8383/)
 test account:
-    - username: zsh    password: 123
-    - username: zyl    password: 123
+- username: zsh    password: 123
+- username: zyl    password: 123
 
 ## Installation
 - install redis 
