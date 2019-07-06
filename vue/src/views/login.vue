@@ -8,36 +8,36 @@
       <div class="right">
         <!--<transition enter-active-class="bounceInLeft" leave-active-class="bounceOutRight">-->
         <div v-show="islogin" class="login-box lr-box animated">
-          <p class="title">Log in</p>
+          <p class="title">{{ $t('login.logIn') }}</p>
           <div class="input-box">
-            <input v-model="user.username" type="text" placeholder="UserName">
+            <input v-model="user.username" type="text" :placeholder="$t('login.username')">
             <input
               v-model="user.password"
               type="password"
-              placeholder="Password"
+              :placeholder="$t('login.password')"
               @keydown.enter="login"
             >
           </div>
           <div class="acc-row">
             <div />
-            <a href class="forget-pwd">Forgot password?</a>
+            <a href class="forget-pwd">{{ $t('login.forgotPassword') }}</a>
           </div>
-          <input type="button" class="button" value="Log in" @click="login">
+          <input type="button" class="button" :value="$t('login.logIn')" @click="login">
           <p class="sign-row">
-            Don't have an account?
-            <a href @click.prevent="islogin=false">Sign up</a>
+            {{ $t('login.notAccount') }}
+            <a href @click.prevent="islogin=false">{{ $t('login.signUp') }}</a>
           </p>
         </div>
         <!--</transition>-->
         <div v-show="!islogin" class="register-box lr-box">
-          <p class="title">Register</p>
+          <p class="title">{{ $t('login.register') }}</p>
           <div class="input-box">
-            <input v-model="user.username" type="text" placeholder="UserName">
-            <input v-model="user.password" type="password" placeholder="Password">
-            <input v-model="user.rolename" type="text" placeholder="Rolename">
+            <input v-model="user.username" type="text" :placeholder="$t('login.username')">
+            <input v-model="user.password" type="password" :placeholder="$t('login.password')">
+            <input v-model="user.rolename" type="text" :placeholder="$t('login.rolename')">
             <div class="upload-row">
               <a href="javascript:;" class="file">
-                Upload icon
+                {{ $t('login.uploadIcon') }}
                 <input id="file" type="file" name>
               </a>
               <div>
@@ -46,10 +46,10 @@
               </div>
             </div>
           </div>
-          <input type="button" class="button" value="Register" @click="register">
+          <input type="button" class="button" :value="$t('login.register')" @click="register">
           <p class="sign-row">
-            Already have an account?
-            <a href @click.prevent="islogin=true">Log in</a>
+            {{ $t('login.account') }}
+            <a href @click.prevent="islogin=true">{{ $t('login.logIn') }}</a>
           </p>
         </div>
       </div>
@@ -58,6 +58,8 @@
 </template>
 
 <script>
+import { login, register } from '@/pack/send/login';
+
 export default {
   data() {
     return {
@@ -75,10 +77,21 @@ export default {
 
   methods: {
     login() {
-
+      if (!this.user.username || !this.user.password) {
+        this.$message.warning(this.$t('login.notInputLogin'));
+        return;
+      }
+      login({
+        username: this.user.username,
+        password: this.user.password,
+      });
     },
     register() {
-
+      register({
+        username: this.user.username,
+        password: this.user.password,
+        rolename: this.user.rolename,
+      });
     },
   },
 };
