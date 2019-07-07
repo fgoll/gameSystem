@@ -1,13 +1,11 @@
-import { Message, MessageBox } from 'element-ui';
-import store from '@/store';
-import router from '@/router';
 import i18n from '@/i18n';
+import inject from './inject';
 
-export const login = (status, packet) => {
+export const login = inject((status, packet, { dispatch }, router, Message, MessageBox) => {
   const { data } = packet;
   switch (status) {
     case 'success':
-      store.dispatch('user/login', data).then(() => {
+      dispatch('user/login', data).then(() => {
         Message.success(i18n.t('login.loginSuccess'));
         router.push('/hall');
       });
@@ -16,7 +14,7 @@ export const login = (status, packet) => {
       Message.showError(packet.msg);
       break;
     case 'betop':
-      store.dispatch('user/betop').then(() => {
+      dispatch('user/betop').then(() => {
         MessageBox.alert(i18n.t('login.betop.content'), i18n.t('login.betop.title'), {
           confirmButtonText: '确定',
           callback: () => {
@@ -28,8 +26,7 @@ export const login = (status, packet) => {
     default:
       break;
   }
-};
-
+});
 
 export const register = (status) => {
   switch (status) {

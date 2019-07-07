@@ -23,6 +23,15 @@ const messages = {
         content: 'confirm will go to home page',
       },
     },
+    hall: {
+      rooms: 'Rooms',
+      user: {
+        users: 'Online User',
+        username: 'Username',
+        state: 'State',
+      },
+      chat: 'Chat List',
+    },
   },
   zh: {
     login: {
@@ -42,6 +51,15 @@ const messages = {
         title: '被顶了',
         content: '点击确认按钮回首页',
       },
+    },
+    hall: {
+      rooms: '房间',
+      user: {
+        users: '在线用户',
+        username: '用户名',
+        state: '状态',
+      },
+      chat: '聊天列表',
     },
   },
 };

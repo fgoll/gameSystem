@@ -59,9 +59,11 @@
 
 <script>
 import { login, register } from '@/pack/send/login';
+import { debounce } from '@/utils';
 
 export default {
   data() {
+    this.login = debounce(this.login);
     return {
       islogin: true,
       baseimg: '',

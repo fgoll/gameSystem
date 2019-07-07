@@ -14,7 +14,7 @@
     <div class="main">
       <div class="left">
         <div class="room-box">
-          <p class="title">Rooms</p>
+          <p class="title">{{ $t('hall.rooms') }}</p>
           <ul class="room-list">
 
             <li v-for="(room, room_id) in rooms" :key="room_id" class="room-item">
@@ -65,18 +65,16 @@
       </div>
       <div class="right">
         <div class="user-box">
-          <p class="title">Online User</p>
-          <ul v-if="users" class="user-list">
+          <p class="title">{{ $t('hall.user.users') }}</p>
+          <ul v-if="hallUsers" class="user-list">
             <li class="header">
-              <span>Username</span>
-              <span>State</span>
+              <span>{{ $t('hall.user.username') }}</span>
+              <span>{{ $t('hall.user.state') }}</span>
             </li>
             <li
-              v-for="(user, index) in users"
+              v-for="(user) in hallUsers"
 
-              :key="index"
-              @mouseover="showUserInfo"
-              @mouseout="showUserInfo"
+              :key="user.id"
             >
               <span>{{ user.rolename }}</span>
               <span>{{ user.status }}</span>
@@ -87,10 +85,10 @@
           </transition>
         </div>
         <div class="chat-box">
-          <p class="title">Chat List</p>
+          <p class="title">{{ $t('hall.chat') }}</p>
           <ul class="chat-list">
             <li
-              v-for="(m_user, index) in messages"
+              v-for="(m_user, index) in hallMessages"
               :key="index"
               :class="{ 'chat-right': user.id == m_user.u_id }"
             >
@@ -117,19 +115,33 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+import { say } from '@/pack/send/hall';
+
 export default {
   data() {
     return {
       message: '',
-      messages: [],
 
+      rooms: [],
       joinId: null,
     };
   },
 
+  computed: {
+    ...mapGetters([
+      'user',
+      'hallUsers',
+      'hallMessages',
+    ]),
+  },
+
   methods: {
     say() {
-
+      say({
+        message: this.message,
+      });
+      this.message = '';
     },
   },
 };
