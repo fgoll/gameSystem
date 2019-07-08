@@ -31,6 +31,11 @@ const messages = {
         state: 'State',
       },
       chat: 'Chat List',
+      free: 'Free',
+      quickJoin: 'Quickly Join',
+      roomNum: 'Room Number',
+      join: 'Join',
+      placeholder: 'Content',
     },
   },
   zh: {
@@ -60,6 +65,11 @@ const messages = {
         state: '状态',
       },
       chat: '聊天列表',
+      free: '空闲',
+      quickJoin: '快速加入',
+      roomNum: '房间号',
+      join: '加入',
+      placeholder: '要发送的内容',
     },
   },
 };

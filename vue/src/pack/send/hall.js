@@ -7,3 +7,10 @@ export const say = (data) => {
     data,
   });
 };
+
+export const enterRoom = (data) => {
+  send({
+    header: 'enter_room',
+    data,
+  }, true);
+};

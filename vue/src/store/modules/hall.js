@@ -3,6 +3,7 @@
 const state = {
   users: [],
   messages: [],
+  rooms: [],
 };
 
 const actions = {
@@ -12,7 +13,10 @@ const actions = {
 };
 
 const mutations = {
-  SET_HALL_MESSAGE: (state, message) => { // Hall大厅.ADDMESSAGE添加信息
+  SET_HALL_ROOM: (state, rooms) => {
+    state.rooms = rooms;
+  },
+  SET_HALL_MESSAGE: (state, message) => {
     if (message) {
       state.messages.push(message);
     } else {

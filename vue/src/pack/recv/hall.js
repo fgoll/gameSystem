@@ -23,5 +23,7 @@ export const hall = inject((status, packet, { commit }) => {
 
   if (status === 'message') {
     commit('hall/SET_HALL_MESSAGE', data);
+  } else if (status === 'init') {
+    commit('hall/SET_HALL_ROOM', data);
   }
 });

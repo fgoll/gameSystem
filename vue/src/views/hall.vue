@@ -17,48 +17,44 @@
           <p class="title">{{ $t('hall.rooms') }}</p>
           <ul class="room-list">
 
-            <li v-for="(room, room_id) in rooms" :key="room_id" class="room-item">
+            <li v-for="(room, index) in hallRooms" :key="room.r_id" class="room-item">
               <div class="top">
                 <div class="main-card">
-                  <div class="role-box" :class="{free: room.users[0] == null}">
+                  <div class="role-box">
                     <template v-if="room.users[0] != null">
                       <svg-icon v-show="room.users[0].sex === 0" icon-class="boy" />
                       <svg-icon v-show="room.users[0].sex === 1" icon-class="girl" />
                     </template>
+                    <template v-else>{{ $t('hall.free') }}</template>
                   </div>
                   <span class="owner">House Owner</span>
                 </div>
-                <span>{{ room_id + 1 }}</span>
-                <button class="button" @click="enterRoom(room_id, -1)">Join Game</button>
+                <span>{{ index + 1 }}</span>
+                <button class="button" @click="enterRoom(room, -1)">Join Game</button>
               </div>
               <div class="bottom">
                 <div
                   v-for="n in 5"
                   :key="n"
                   class="role-box"
-                  :class="{free: room.users[n] == null}"
                 >
                   <template v-if="room.users[n] != null">
                     <svg-icon v-show="room.users[0].sex === 0" icon-class="boy" />
                     <svg-icon v-show="room.users[0].sex === 1" icon-class="girl" />
                   </template>
+                  <template v-else>{{ $t('hall.free') }}</template>
                 </div>
               </div>
             </li>
           </ul>
           <div class="join-tool">
             <div class="button quick-btn" @click="enterRoom(-1, -1)">
-              快速加入
-              <!--<ul class="quick-menu">-->
-              <!--<li>你画我猜</li>-->
-              <!--<li>五子棋</li>-->
-              <!--<li>随机</li>-->
-              <!--</ul>-->
+              {{ $t('hall.quickJoin') }}
             </div>
             <div>
-              房间号:
+              {{ $t('hall.roomNum') }}:
               <input v-model="joinId" type="text">
-              <div class="button" @click="enterRoom(joinId - 1, -1)">加入</div>
+              <div class="button" @click="enterRoom(joinId - 1, -1)">{{ $t('hall.join') }}</div>
             </div>
           </div>
         </div>
@@ -101,7 +97,11 @@
           </ul>
           <div class="send-box">
             <div class="send-input">
-              <textarea v-model="message" placeholder="发送内容" @keydown.enter.prevent.stop="say" />
+              <textarea
+                v-model="message"
+                :placeholder="$t('hall.placeholder')"
+                @keydown.enter.prevent.stop="say"
+              />
               <button class="btn" @click="say" />
             </div>
           </div>
@@ -116,7 +116,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import { say } from '@/pack/send/hall';
+import { say, enterRoom } from '@/pack/send/hall';
 
 export default {
   data() {
@@ -131,12 +131,72 @@ export default {
   computed: {
     ...mapGetters([
       'user',
+      'hallRooms',
       'hallUsers',
       'hallMessages',
     ]),
   },
 
+  watch: {
+    hallMessages() {
+      const dom = document.getElementsByClassName('chat-list')[0];
+      if (dom.scrollTop === dom.scrollHeight - dom.clientHeight) {
+        this.$nextTick(() => {
+          dom.scrollTop = dom.scrollHeight;
+        });
+      }
+    },
+  },
+
+  created() {
+    this.roomsMap = {};
+    const rooms = this.hallRooms;
+    for (let i = 0; i < rooms.length; i++) {
+      this.roomsMap[+rooms[i].r_id] = rooms[i];
+    }
+  },
+
   methods: {
+    enterRoom(room, pId) {
+      let roomId;
+      if (typeof room === 'object') {
+        roomId = +room.r_id;
+      } else {
+        roomId = room;
+        room = this.roomsMap[room];
+      }
+
+      if (roomId !== -1) {
+        if (!room) {
+          this.$message.Error("room doesn't exists");
+          return;
+        }
+
+        if (room.status === 'playing') {
+          this.$message.Error('the room is playing');
+          return;
+        }
+
+        const { users } = room;
+
+        if (pId !== -1) {
+          if (users.filter(ele => ele != null).length === 6) {
+            this.$message.Error('the people is full');
+            return;
+          }
+        }
+        const user = users[pId];
+        if (user) {
+          this.$message.Error(`this position have people => ${user.rolename}`);
+          return;
+        }
+      }
+
+      enterRoom({
+        room_id: roomId,
+        p_id: pId,
+      });
+    },
     say() {
       say({
         message: this.message,
@@ -306,23 +366,25 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 0.7rem;
+
   img {
     width: 80%;
     height: 80%;
   }
-  .free::after {
-    content: "Free";
-    position: absolute;
-    font-size: 0.7rem;
-    color: #616d82;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-  }
+  // &.free::after {
+  //   content: "Free";
+  //   position: absolute;
+  //   font-size: 0.7rem;
+  //   color: #616d82;
+  //   left: 0;
+  //   right: 0;
+  //   top: 0;
+  //   bottom: 0;
+  //   justify-content: center;
+  //   align-items: center;
+  //   display: flex;
+  // }
 }
 
 .main-card {
