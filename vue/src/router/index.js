@@ -20,5 +20,17 @@ export default new Router({
       name: 'hall',
       component: () => import('@/views/hall'),
     },
+
+    {
+      path: '/chess',
+      name: 'chess',
+      component: () => import('@/views/room/chess'),
+    },
+
+    {
+      path: '/draw',
+      name: 'draw',
+      component: () => import('@/views/room/draw'),
+    },
   ],
 });

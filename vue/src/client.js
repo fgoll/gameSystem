@@ -2,6 +2,8 @@
 import { Loading } from 'element-ui';
 import { login } from './pack/recv/login';
 import { user, hall } from './pack/recv/hall';
+import { room } from './pack/recv/room';
+
 
 const [url, port] = [process.env.VUE_APP_URL, process.env.VUE_APP_PORT];
 
@@ -24,6 +26,7 @@ function messageHanlder(packet) {
       hall(status, packet);
       break;
     case 'rooms':
+      room(status, packet);
       break;
     case 'draw':
       break;

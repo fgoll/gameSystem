@@ -1,4 +1,5 @@
 /* eslint-disable no-shadow */
+import Vue from 'vue';
 
 const state = {
   users: [],
@@ -7,14 +8,41 @@ const state = {
 };
 
 const actions = {
-  clearMessage({ commit }) {
-    commit('Hall.CLEARMESSAGE');
+  enterRoom({ state }, id) {
+    return new Promise((resolve) => {
+      const roomType = state.roomsMap[+id].room.game_type;
+
+      resolve(roomType);
+    });
   },
 };
 
 const mutations = {
   SET_HALL_ROOM: (state, rooms) => {
     state.rooms = rooms;
+    const map = {};
+    for (let i = 0; i < rooms.length; i++) {
+      map[rooms[i].r_id] = {
+        index: i,
+        room: rooms[i],
+      };
+    }
+    state.roomsMap = map;
+  },
+  SET_HALL_ROOM_INFO: (state, newRoom) => {
+    const id = newRoom.r_id;
+    const { room } = state.roomsMap[id];
+    if (!room) return;
+    const { status } = room;
+    if (status) room.status = status;
+    // Vue.set(state.rooms, index, room);
+    const { users } = newRoom;
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      if (room.users[i] !== user) {
+        Vue.set(room.users, i, user);
+      }
+    }
   },
   SET_HALL_MESSAGE: (state, message) => {
     if (message) {
