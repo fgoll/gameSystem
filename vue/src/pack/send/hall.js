@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import { send } from '@/client';
 
 export const say = (data) => {

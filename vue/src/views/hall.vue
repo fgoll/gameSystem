@@ -84,15 +84,15 @@
           <p class="title">{{ $t('hall.chat') }}</p>
           <ul class="chat-list">
             <li
-              v-for="(m_user, index) in hallMessages"
+              v-for="(msg, index) in hallMessages"
               :key="index"
-              :class="{ 'chat-right': user.id == m_user.u_id }"
+              :class="{ 'chat-right': user.id == msg.u_id }"
             >
               <div>
-                <img :src="m_user.avatar" alt class="chat-icon">
-                <span>{{ m_user.rolename }}</span>
+                <img :src="msg.avatar" alt class="chat-icon">
+                <span>{{ msg.rolename }}</span>
               </div>
-              <p class="chat-content">{{ m_user.message }}</p>
+              <p class="chat-content">{{ msg.message }}</p>
             </li>
           </ul>
           <div class="send-box">
@@ -168,27 +168,27 @@ export default {
 
       if (roomId !== -1) {
         if (!room) {
-          this.$message.Error("room doesn't exists");
+          this.$message.error("room doesn't exists");
           return;
         }
 
         if (room.status === 'playing') {
-          this.$message.Error('the room is playing');
+          this.$message.error('the room is playing');
           return;
         }
 
         const { users } = room;
+        if (users.filter(ele => ele != null).length === 6) {
+          this.$message.error('the people is full');
+          return;
+        }
 
         if (pId !== -1) {
-          if (users.filter(ele => ele != null).length === 6) {
-            this.$message.Error('the people is full');
+          const user = users[pId];
+          if (user) {
+            this.$message.error(`this position have people => ${user.rolename}`);
             return;
           }
-        }
-        const user = users[pId];
-        if (user) {
-          this.$message.Error(`this position have people => ${user.rolename}`);
-          return;
         }
       }
 

@@ -1,21 +1,21 @@
 <template>
-  <div id="room">
+  <div v-if="roomUser && room" id="room">
     <div class="header">
       <div class="time-box">
         <p>time</p>
-        <p class="big-font">{{ duration }}</p>
+        <p class="big-font">{{ roomDuration }}</p>
       </div>
       <div class="title-box">
         <p>Draw</p>
         <!--{{topic.topic_title}}-->
-        <p class="big-font">111</p>
+        <p class="big-font">{{ roomUser.status == 'action' ? roomUser.topic.topic_title : '' }}</p>
       </div>
       <button class="button" @click="leave">quit</button>
 
-      <div class="name-label">aaa</div>
+      <div class="name-label">{{ roomUser.rolename }}</div>
     </div>
     <div v-if="room" class="content">
-      <ul v-show="room.status == 'playing' " class="user-list">
+      <ul v-show="room.status === 'playing' " class="user-list">
         <template v-for="(u, index) in room.users">
           <li v-if="u" :key="index" :class="{ current: u.status === 'action' }">
             <div class="user-icon">
@@ -26,7 +26,7 @@
         </template>
 
       </ul>
-      <ul v-show="room.status != 'playing'" class="ready-content">
+      <ul v-show="room.status !== 'playing'" class="ready-content">
         <template v-for="(u, index) in room.users">
           <li :key="index" :class="{ isself: u != null && u.u_id === user.id }">
             <!--{{ u.u_id }}-->
@@ -42,8 +42,8 @@
         </template>
 
       </ul>
-      <div v-show="room.status == 'playing'" class="game-content">
-        <canvas id="cas" />
+      <div v-show="room.status === 'playing'" class="game-content">
+        <canvas id="cas" ref="canvas" />
         <div class="tool-bar">
           <ul class="color-list canselected">
             <li
@@ -73,20 +73,20 @@
         <div class="chat-box">
           <ul class="chat-list">
             <li
-              v-for="(m_user,index) in room_messages"
+              v-for="(msg,index) in roomMessages"
               :key="index"
-              :class="{ 'chat-right': user.id == m_user.u_id }"
+              :class="{ 'chat-right': user.id == msg.u_id }"
             >
 
               <div>
                 <img
-                  :src="(m_user.rolename == 'GM' ? '/static/gm.JPG' : m_user.avatar)"
+                  :src="(msg.rolename == 'GM' ? '/static/gm.JPG' : msg.avatar)"
                   alt=""
                   class="chat-icon"
                 >
-                <span>{{ m_user.rolename }}</span>
+                <span>{{ msg.rolename }}</span>
               </div>
-              <p class="chat-content">{{ m_user.message }}</p>
+              <p class="chat-content">{{ msg.message }}</p>
             </li>
 
           </ul>
@@ -94,7 +94,7 @@
             <div class="send-input">
               <textarea
                 v-model="message"
-                :disabled="room_user.status == 'action'"
+                :disabled="roomUser.status == 'action'"
                 placeholder="发送内容"
                 @keydown.enter.prevent.stop="say"
               />
@@ -105,10 +105,10 @@
         <div
           v-show="room.status != 'playing'"
           class="ready-btn sweet-btn glass"
-          :class="{ blue: room_user.status == 'waiting' }"
+          :class="{ blue: roomUser.status == 'waiting' }"
           @click="toggle"
         >
-          {{ room_user.status == 'waiting' ? '立即准备' : '取消准备' }}
+          {{ roomUser.status == 'waiting' ? '立即准备' : '取消准备' }}
         </div>
       </div>
 
@@ -122,42 +122,165 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+import { say, leave, toggle } from '@/pack/send/room';
 
 export default {
   data() {
     return {
       message: '',
-      duration: 60,
       canvas: null,
       colors: ['black', 'red', 'blue', 'yellow', 'white', 'bisque', 'pink', 'orange'],
       currentColor: 'black',
       weights: ['2px', '4px', '6px', '8px'],
       currentWeight: '2px',
-      room: null,
       showAnswer: false,
     };
   },
   computed: {
+    ...mapGetters([
+      'user',
+      'hallRoomsMap',
+      'roomDuration',
+      'roomMessages',
+    ]),
 
+    room() {
+      return this.hallRoomsMap[this.user.room_id].room;
+    },
 
+    roomUser() {
+      const { users } = this.room;
+
+      for (let i = 0; i < users.length; i++) {
+        const user = users[i];
+        if (user && user.u_id === this.user.id) {
+          return user;
+        }
+      }
+
+      return null;
+    },
+
+    canAction() {
+      return this.roomUser.status === 'action';
+    },
   },
   watch: {
 
   },
   mounted() {
-
+    this.initCanvas(this.$refs.canvas);
   },
   destroyed() {
 
   },
   methods: {
-    leave() {
+    initCanvas(canvas) {
+      const event = {};
+      if ('ontouchstart' in window) {
+        event.isTouchable = true;
+        event.EVENT_START = 'touchstart';
+        event.EVENT_MOVE = 'touchmove';
+        event.EVENT_END = 'touchend';
+      } else {
+        event.isTouchable = false;
+        event.EVENT_START = 'mousedown';
+        event.EVENT_MOVE = 'mousemove';
+        event.EVENT_END = 'mouseup';
+      }
+      event.EVENT_CANCEL = 'touchcancel';
+      event.EVENT_CLICK = 'click';
 
+      let isDown = false;
+
+      const context = canvas.getContext('2d');
+
+      const parent = canvas.parentNode;
+
+      function getSize() {
+        return {
+          width: parent.innerWidth || parent.clientWidth || 1000,
+          height: (parent.innerHeight
+                      || parent.clientHeight
+                      || parent.clientHeight
+                      || 600) - 50,
+        };
+      }
+      window.onresize = () => {
+        const {
+          width,
+          height,
+        } = getSize();
+        [canvas.width, canvas.height] = [width, height];
+      };
+
+      canvas.addEventListener(event.EVENT_START, () => {
+        if (!this.canAction) return;
+        isDown = true;
+        context.beginPath();
+        context.strokeStyle = this.currentColor;
+        context.lineWidth = parseInt(this.currentWeight, 10);
+        context.lineCap = 'round';
+        context.lineJoin = 'round';
+      });
+
+      canvas.addEventListener(event.EVENT_MOVE, (e) => {
+        e.preventDefault();
+        if (!this.canAction) return;
+        if (isDown) {
+          let beginX = 0;
+          let beginY = 0;
+
+          if (e.pageX) {
+            beginX = e.pageX;
+            beginY = e.pageY;
+          } else {
+            beginX = e.touches[0].clientX;
+            beginY = e.touches[0].clientY;
+          }
+          const x = beginX - canvas.offsetLeft;
+          const y = beginY - canvas.offsetTop;
+          context.lineTo(x, y);
+          context.stroke();
+        }
+      });
+
+      canvas.addEventListener(event.EVENT_END, () => {
+        if (!this.canAction) return;
+        isDown = false;
+
+        context.closePath();
+      });
+    },
+
+    leave() {
+      if (this.room.status === 'playing') {
+        this.$message.error(this.$t('status.playing'));
+        return;
+      }
+      leave({
+        room_id: this.user.room_id,
+        p_id: this.roomUser.p_id,
+      });
+
+      this.$router.push('/hall');
     },
     say() {
-
+      if (this.message) {
+        say({
+          message: this.message,
+          room_id: this.user.room_id,
+        });
+      }
     },
     toggle() {
+      if (this.room.status === 'playing') {
+        this.$message.error(this.$t('status.playing'));
+        return;
+      }
+
+      toggle();
     },
     clearCas() {
     },

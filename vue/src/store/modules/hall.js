@@ -5,6 +5,7 @@ const state = {
   users: [],
   messages: [],
   rooms: [],
+  roomsMap: {},
 };
 
 const actions = {
@@ -17,23 +18,27 @@ const actions = {
   },
 };
 
+const getRoomsMap = (rooms) => {
+  const map = {};
+  for (let i = 0; i < rooms.length; i++) {
+    map[rooms[i].r_id] = {
+      index: i,
+      room: rooms[i],
+    };
+  }
+  return map;
+};
+
 const mutations = {
   SET_HALL_ROOM: (state, rooms) => {
     state.rooms = rooms;
-    const map = {};
-    for (let i = 0; i < rooms.length; i++) {
-      map[rooms[i].r_id] = {
-        index: i,
-        room: rooms[i],
-      };
-    }
-    state.roomsMap = map;
+    state.roomsMap = getRoomsMap(rooms);
   },
   SET_HALL_ROOM_INFO: (state, newRoom) => {
     const id = newRoom.r_id;
     const { room } = state.roomsMap[id];
     if (!room) return;
-    const { status } = room;
+    const { status } = newRoom;
     if (status) room.status = status;
     // Vue.set(state.rooms, index, room);
     const { users } = newRoom;
@@ -43,6 +48,7 @@ const mutations = {
         Vue.set(room.users, i, user);
       }
     }
+    state.roomsMap = getRoomsMap(state.rooms);
   },
   SET_HALL_MESSAGE: (state, message) => {
     if (message) {

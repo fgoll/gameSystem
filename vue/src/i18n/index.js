@@ -37,6 +37,9 @@ const messages = {
       join: 'Join',
       placeholder: 'Content',
     },
+    status: {
+      playing: 'is playing',
+    },
   },
   zh: {
     login: {
@@ -70,6 +73,9 @@ const messages = {
       roomNum: '房间号',
       join: '加入',
       placeholder: '要发送的内容',
+    },
+    status: {
+      playing: '游戏中',
     },
   },
 };
