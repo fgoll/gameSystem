@@ -3,7 +3,7 @@
 const state = {
   fd: null,
   id: null,
-  room_id: null,
+  roomId: null,
   rolename: null,
   avatar: null,
   status: null,
@@ -20,7 +20,7 @@ const mutations = {
     state.id = id;
   },
   SET_USER_ROOM_ID: (state, roomId) => {
-    state.room_id = roomId;
+    state.roomId = roomId;
   },
   SET_USER_ROLENAME: (state, rolename) => {
     state.rolename = rolename;

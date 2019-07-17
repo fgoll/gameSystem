@@ -71,7 +71,7 @@
       </div>
       <div class="right-box">
         <div class="chat-box">
-          <ul class="chat-list">
+          <ul ref="chat" class="chat-list">
             <li
               v-for="(msg,index) in roomMessages"
               :key="index"
@@ -113,17 +113,21 @@
       </div>
 
     </div>
-    <div v-show="showAnswer" class="answer-box">
+    <div v-show="answerImg" class="answer-box">
       <p class="title">答案:
-        <span class="answer">aaa</span></p>
-      <img id="answer-img" src="" alt="">
+        <span class="answer">{{ actionUser != null ? actionUser.topic.topic_title : '' }}</span></p>
+      <img v-if="answerImg" ref="answer" :src="answerImg.src" alt="">
     </div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
-import { say, leave, toggle } from '@/pack/send/room';
+import {
+  say, leave, toggle, drawStart, drawMove, drawEnd, next,
+} from '@/pack/send/room';
+import { getEvents } from '@/utils';
+import Bus from '@/utils/bus';
 
 export default {
   data() {
@@ -135,6 +139,7 @@ export default {
       weights: ['2px', '4px', '6px', '8px'],
       currentWeight: '2px',
       showAnswer: false,
+      answerImg: null,
     };
   },
   computed: {
@@ -146,7 +151,7 @@ export default {
     ]),
 
     room() {
-      return this.hallRoomsMap[this.user.room_id].room;
+      return this.hallRoomsMap[this.user.roomId].room;
     },
 
     roomUser() {
@@ -162,12 +167,56 @@ export default {
       return null;
     },
 
+    actionUser() {
+      const { users } = this.room;
+
+      for (let i = 0, n = users.length; i < n; i++) {
+        const user = users[i];
+        if (user && user.status === 'action') {
+          return user;
+        }
+      }
+
+      return null;
+    },
+
     canAction() {
       return this.roomUser.status === 'action';
     },
   },
   watch: {
+    roomMessages() {
+      const dom = this.$refs.chat;
+      if (dom.scrollTop === dom.scrollHeight - dom.clientHeight) {
+        this.$nextTick(() => {
+          dom.scrollTop = dom.scrollHeight;
+        });
+      }
+    },
 
+    room(val) {
+      if (val.status === 'playing') {
+        window.onresize();
+      }
+    },
+
+    roomDuration(val) {
+      if (val <= 0) {
+        this.answerImg = this.convertCanvasToImage(this.$refs.canvas);
+
+        setTimeout(() => {
+          this.answerImg = null;
+        }, 2000);
+
+        if (this.roomUser.status === 'action') {
+          setTimeout(() => {
+            next({
+              room_id: this.user.roomId,
+            });
+          }, 3000);
+        }
+      }
+    },
   },
   mounted() {
     this.initCanvas(this.$refs.canvas);
@@ -177,22 +226,7 @@ export default {
   },
   methods: {
     initCanvas(canvas) {
-      const event = {};
-      if ('ontouchstart' in window) {
-        event.isTouchable = true;
-        event.EVENT_START = 'touchstart';
-        event.EVENT_MOVE = 'touchmove';
-        event.EVENT_END = 'touchend';
-      } else {
-        event.isTouchable = false;
-        event.EVENT_START = 'mousedown';
-        event.EVENT_MOVE = 'mousemove';
-        event.EVENT_END = 'mouseup';
-      }
-      event.EVENT_CANCEL = 'touchcancel';
-      event.EVENT_CLICK = 'click';
-
-      let isDown = false;
+      const event = getEvents();
 
       const context = canvas.getContext('2d');
 
@@ -207,6 +241,7 @@ export default {
                       || 600) - 50,
         };
       }
+
       window.onresize = () => {
         const {
           width,
@@ -215,20 +250,60 @@ export default {
         [canvas.width, canvas.height] = [width, height];
       };
 
-      canvas.addEventListener(event.EVENT_START, () => {
+      canvas.addEventListener(event.EVENT_START, this.handleStart({ context }));
+
+      canvas.addEventListener(event.EVENT_MOVE, this.handleMove({ context, canvas }));
+
+      canvas.addEventListener(event.EVENT_END, this.handleEnd({ context }));
+
+      this.bindEvents({ context, canvas });
+    },
+
+    bindEvents({ context, canvas }) {
+      Bus.$on('drawstart', ({ color, weight }) => {
+        context.beginPath();
+        context.strokeStyle = color;
+        context.lineWidth = parseInt(weight, 10);
+      });
+
+      Bus.$on('drawmove', ({ x, y }) => {
+        const [width, height] = [canvas.width, canvas.height];
+        context.lineTo(x * width, y * height);
+        context.stroke();
+      });
+
+      Bus.$on('drawend', () => {
+        context.closePath();
+      });
+
+      Bus.$on('drawclear', () => {
+        canvas.height = canvas.height;
+      });
+    },
+
+    handleStart({ context, send = true }) {
+      return () => {
         if (!this.canAction) return;
-        isDown = true;
+        this.isDown = true;
         context.beginPath();
         context.strokeStyle = this.currentColor;
         context.lineWidth = parseInt(this.currentWeight, 10);
         context.lineCap = 'round';
         context.lineJoin = 'round';
-      });
+        if (send) {
+          drawStart({
+            color: this.currentColor,
+            weight: this.currentWeight,
+          });
+        }
+      };
+    },
 
-      canvas.addEventListener(event.EVENT_MOVE, (e) => {
+    handleMove({ context, canvas, send = true }) {
+      return (e) => {
         e.preventDefault();
         if (!this.canAction) return;
-        if (isDown) {
+        if (this.isDown) {
           let beginX = 0;
           let beginY = 0;
 
@@ -243,15 +318,29 @@ export default {
           const y = beginY - canvas.offsetTop;
           context.lineTo(x, y);
           context.stroke();
-        }
-      });
 
-      canvas.addEventListener(event.EVENT_END, () => {
+          if (send) {
+            drawMove({
+              x,
+              y,
+              width: canvas.width,
+              height: canvas.height,
+              room_id: this.user.roomId,
+            });
+          }
+        }
+      };
+    },
+
+    handleEnd({ context, send = true }) {
+      return () => {
         if (!this.canAction) return;
-        isDown = false;
+        this.isDown = false;
 
         context.closePath();
-      });
+
+        if (send) { drawEnd(); }
+      };
     },
 
     leave() {
@@ -260,18 +349,16 @@ export default {
         return;
       }
       leave({
-        room_id: this.user.room_id,
-        p_id: this.roomUser.p_id,
+        room_id: this.user.roomId,
       });
-
-      this.$router.push('/hall');
     },
     say() {
       if (this.message) {
         say({
           message: this.message,
-          room_id: this.user.room_id,
+          room_id: this.user.roomId,
         });
+        this.message = '';
       }
     },
     toggle() {
@@ -346,7 +433,7 @@ export default {
 
   .content .user-list {
     flex: 0 0 90px;
-    box-shadow: 0 0 10px #AA6008;
+    box-shadow: 0 0 10px #d5cec6;
     overflow: hidden;
     border-radius: 5px 40px;
     background: #fff;
@@ -404,7 +491,7 @@ export default {
 
   .content .game-content, .ready-content {
     flex-grow: 1;
-    box-shadow: 0 0 10px #AA6008;
+    box-shadow: 0 0 10px #d5cec6;
     overflow: hidden;
     border-radius: 5px;
     background: #fff;
@@ -456,13 +543,13 @@ export default {
   }
 
   .canselected .current:after {
-    content: '';
+    content: '👇';
     /* background: url("../assets/ARROW.png") no-repeat center center; */
     position: absolute;
-    top: -5px;
+    top: -26px;
     width: 10px;
     height: 5px;
-    left: 50%;
+    left: 30%;
     transform: translateX(-50%);
   }
 

@@ -19,3 +19,31 @@ export const leave = (data) => {
     data,
   }, true);
 };
+
+// draw
+export const drawStart = (data) => {
+  send({
+    header: 'draw_start',
+    data,
+  });
+};
+
+export const drawMove = (data) => {
+  send({
+    header: 'draw_move',
+    data,
+  });
+};
+
+export const drawEnd = () => {
+  send({
+    header: 'draw_end',
+  });
+};
+
+export const next = (data) => {
+  send({
+    header: 'next_begin',
+    data,
+  });
+};

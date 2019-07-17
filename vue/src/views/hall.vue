@@ -39,8 +39,8 @@
                   class="role-box"
                 >
                   <template v-if="room.users[n] != null">
-                    <svg-icon v-show="room.users[0].sex === 0" icon-class="boy" />
-                    <svg-icon v-show="room.users[0].sex === 1" icon-class="girl" />
+                    <svg-icon v-show="room.users[n].sex === 0" icon-class="boy" />
+                    <svg-icon v-show="room.users[n].sex === 1" icon-class="girl" />
                   </template>
                   <template v-else>{{ $t('hall.free') }}</template>
                 </div>

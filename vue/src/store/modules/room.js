@@ -10,6 +10,20 @@ const actions = {
   clearMessage({ commit }) {
     commit('SET_ROOM_MESSAGE');
   },
+
+  countdown({ dispatch, commit, state }) {
+    if (state.duration > 0) {
+      setTimeout(() => {
+        commit('SET_ROOM_DURATION', state.duration - 1);
+        dispatch('countdown');
+      }, 1000);
+    }
+  },
+
+  begin({ dispatch, commit }, duration) {
+    commit('SET_ROOM_DURATION', duration);
+    dispatch('countdown');
+  },
 };
 
 const mutations = {
@@ -19,6 +33,10 @@ const mutations = {
     } else {
       state.messages = [];
     }
+  },
+
+  SET_ROOM_DURATION: (state, duration) => {
+    state.duration = duration;
   },
 };
 
