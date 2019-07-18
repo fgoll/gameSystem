@@ -25,6 +25,9 @@ const messages = {
     },
     hall: {
       rooms: 'Rooms',
+      owner: 'House Owner',
+      joinGame: 'Join Game',
+      welcome: 'Welcome!',
       user: {
         users: 'Online User',
         username: 'Username',
@@ -62,6 +65,9 @@ const messages = {
     },
     hall: {
       rooms: '房间',
+      owner: '房主',
+      joinGame: '加入游戏',
+      welcome: '欢迎您!',
       user: {
         users: '在线用户',
         username: '用户名',
@@ -81,6 +87,6 @@ const messages = {
 };
 
 export default new VueI18n({
-  locale: 'en',
+  locale: 'zh',
   messages,
 });

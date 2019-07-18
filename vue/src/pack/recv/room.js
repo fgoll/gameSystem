@@ -31,6 +31,7 @@ export const room = inject((status, packet, { commit, dispatch }, router) => {
       break;
     case 'leave':
       commit('user/SET_USER_ROOM_ID', null);
+      dispatch('room/clearMessage');
       router.push('/hall');
       break;
     default:

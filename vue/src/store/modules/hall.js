@@ -65,7 +65,7 @@ const mutations = {
     }
   },
   DEL_HALL_USER: (state, id) => {
-    const index = state.users.findIndex(user => user.id === id);
+    const index = state.users.findIndex(user => +user.u_id === +id);
 
     if (index > -1) {
       state.users.splice(index, 1);

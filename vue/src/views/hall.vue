@@ -8,7 +8,7 @@
         <div class="avatar">
           <img :src="user.avatar" alt>
         </div>
-        <span>{{ user.rolename }}, 欢迎您!</span>
+        <span>{{ user.rolename }}, {{ $t('hall.welcome') }}!</span>
       </div>
     </div>
     <div class="main">
@@ -27,10 +27,12 @@
                     </template>
                     <template v-else>{{ $t('hall.free') }}</template>
                   </div>
-                  <span class="owner">House Owner</span>
+                  <span class="owner">{{ $t('hall.owner') }}</span>
                 </div>
                 <span>{{ index + 1 }}</span>
-                <button class="button" @click="enterRoom(room, -1)">Join Game</button>
+                <button class="button" @click="enterRoom(room, -1)">
+                  {{ $t('hall.joinGame') }}
+                </button>
               </div>
               <div class="bottom">
                 <div
@@ -518,6 +520,7 @@ export default {
 .owner {
   font-size: 0.8rem;
   color: #fff;
+  flex: 1;
 }
 
 .fade-enter-active,

@@ -11,7 +11,7 @@ export const user = inject((status, packet, { commit }) => {
       commit('hall/SET_HALL_USER', data);
       break;
     case 'leave':
-      commit('hall/DEL_HALL_USER', data.id);
+      commit('hall/DEL_HALL_USER', data.u_id);
       break;
     default:
       break;
