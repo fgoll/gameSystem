@@ -11,7 +11,7 @@ export const login = inject((status, packet, { dispatch }, router, Message, Mess
       });
       break;
     case 'error':
-      Message.showError(packet.msg);
+      Message.error(packet.msg);
       break;
     case 'betop':
       dispatch('user/betop').then(() => {

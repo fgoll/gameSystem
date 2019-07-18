@@ -49,8 +49,10 @@ export const draw = inject((status, packet) => {
       Bus.$emit('drawmove', data);
       break;
     case 'end':
+      Bus.$emit('drawend');
       break;
     case 'clear':
+      Bus.$emit('drawclear');
       break;
     default:
       break;

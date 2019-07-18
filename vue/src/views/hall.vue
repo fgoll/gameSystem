@@ -107,9 +107,6 @@
           </div>
         </div>
       </div>
-      <!--<div class="showchat-btn">-->
-
-      <!--</div>-->
     </div>
   </div>
 </template>
@@ -566,18 +563,6 @@ export default {
     width: 0;
     opacity: 0;
   }
-
-  .showchat-btn {
-    position: fixed;
-    top: 5rem;
-    right: 0.8rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 100%;
-    background: #fff url("../assets/chat.png") no-repeat center center;
-    box-shadow: 0 0 3px gray;
-  }
-
   * {
     font-size: 12px;
   }

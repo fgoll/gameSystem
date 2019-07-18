@@ -41,6 +41,12 @@ export const drawEnd = () => {
   });
 };
 
+export const drawClear = () => {
+  send({
+    header: 'draw_clear',
+  });
+};
+
 export const next = (data) => {
   send({
     header: 'next_begin',

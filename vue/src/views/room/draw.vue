@@ -65,8 +65,12 @@
               <div :style="{width: weight, height: weight}" />
             </li>
           </ul>
-          <div class="small-btn rubber-btn" @click="rubber" />
-          <div class="small-btn clear-btn" @click="clearCas" />
+          <div class="small-btn rubber-btn" @click="rubber">
+            <svg-icon icon-class="rubber" />
+          </div>
+          <div class="small-btn clear-btn" @click="clear">
+            <svg-icon icon-class="clear" />
+          </div>
         </div>
       </div>
       <div class="right-box">
@@ -124,7 +128,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import {
-  say, leave, toggle, drawStart, drawMove, drawEnd, next,
+  say, leave, toggle, drawStart, drawMove, drawEnd, drawClear, next,
 } from '@/pack/send/room';
 import { getEvents } from '@/utils';
 import Bus from '@/utils/bus';
@@ -222,7 +226,7 @@ export default {
     this.initCanvas(this.$refs.canvas);
   },
   destroyed() {
-
+    window.onresize = null;
   },
   methods: {
     initCanvas(canvas) {
@@ -369,9 +373,15 @@ export default {
 
       toggle();
     },
-    clearCas() {
+    clear() {
+      if (!this.canAction) return;
+      Bus.$emit('drawclear');
+      drawClear();
     },
     rubber() {
+      if (!this.canAction) return;
+      this.currentColor = 'white';
+      this.currentWeight = '8px';
     },
     convertCanvasToImage(canvas) {
       const image = new Image();
@@ -461,8 +471,6 @@ export default {
     display: flex;
     justify-content: center;
     overflow: hidden;
-    /*overflow: hidden;*/
-    /*border: 5px solid #AA6008;*/
   }
 
   .content .user-list li.current .user-icon:after {
@@ -477,14 +485,7 @@ export default {
     box-shadow: 0 0 10px #fff inset;
   }
 
-  /*.content .user-list li.current {*/
-    /*color: #fff;*/
-    /*background: #e19d8f;*/
-    /*box-shadow: 0 -1px 10px #fff inset;*/
-  /*}*/
-
   .content .user-list img {
-    /*width: 100%;*/
     height: 100%;
     border-radius: 100%;
   }
@@ -544,7 +545,6 @@ export default {
 
   .canselected .current:after {
     content: '👇';
-    /* background: url("../assets/ARROW.png") no-repeat center center; */
     position: absolute;
     top: -26px;
     width: 10px;
@@ -566,8 +566,8 @@ export default {
     margin-top: 2%;
     overflow: hidden;
     border-radius: 10px;
-    box-shadow: 0 0 5px gray;
-    background: repeating-linear-gradient(45deg, #f1eaef, #d4d6d0 10px, #eee9ed 0, #eee9ed 20px);
+    box-shadow: 0 0 5px #d3d3d3;
+    background: repeating-linear-gradient(-5deg, #f1eaef, #d4d6d0 10px, #eee9ed 0, #eee9ed 11px);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -577,13 +577,15 @@ export default {
 
   .ready-content li.isself {
     border: 2px solid #F69B2F;
-    /*background: none;*/
-    background: repeating-linear-gradient(45deg, #f1eaef, #d4d6d0 10px, #ffe07f 0, #eee9ed 20px);
+    background: repeating-linear-gradient(2deg, #f1eaef, #d4d6d0 10px, #634f10 0, #eee9ed 11px);
   }
 
   .ready-content li p {
     font-size: 20px;
     font-weight: bold;
+    padding: 4px 0 0;
+    background: #fff;
+    width: 100%;
   }
 
   .ready-content li .index {
@@ -592,7 +594,8 @@ export default {
     top: -1px;
     width: 40px;
     height: 40px;
-    /* background: url("../assets/index_bg.png") no-repeat left top / 40px ; */
+    background: chocolate;
+    border-radius: 0 0 20px 0;
     display: flex;
     color: #fff;
     justify-content: center;
@@ -604,8 +607,7 @@ export default {
   .ready-content li img {
     width: 90%;
     margin-top: 20px;
-    box-shadow: 0 0 5px gray;
-    /*z-index: 5;*/
+    box-shadow: 0 0 5px #d3d3d3;
   }
 
   .ready-content li .ready-status {
@@ -614,7 +616,7 @@ export default {
     bottom: 5px;
     font-size: 25px;
     color: #d17f05;
-    box-shadow: 0 0 5px gray;
+    box-shadow: 0 0 5px #d3d3d3;
     transform: rotateZ(-20deg);
     z-index: 999;
     background: rgba(255, 255, 255, 0.5);
@@ -643,21 +645,18 @@ export default {
     display: block;
   }
 
-  .rubber-btn {
-    /* background: #fff url("../assets/rubber.png") no-repeat center center / 22px 22px; */
-  }
 
   .small-btn {
     width: 2rem;
     height: 2rem;
-
+    font-size: 30px;
     border-radius: 50%;
-    box-shadow: 0 0 5px gray;
-
+    box-shadow: 0 0 5px #d3d3d3;
+    display: flex;align-items: center;
+    justify-content: center;
   }
 
   .clear-btn {
-    /* background: #fff url("../assets/clear3.png") no-repeat center center / 20px 20px; */
     margin: 0 3% 0 2%;
   }
 
@@ -675,12 +674,9 @@ export default {
     top: 50%;
     width: 18rem;
     padding: 30px 20px;
-    /*height: 15rem;*/
     background: #e68383;
     box-shadow: 0 0 5px lightgray;
     border-radius: 5px;
-    /*box-shadow: 0 0 5px #d17f05;*/
-    /*border-radius: 20% 20% 20% 0 ;*/
     transform: translateX(-50%) translateY(-50%);
   }
 
@@ -747,9 +743,6 @@ export default {
        padding-top: 0;
        padding-bottom: 0;
     }
-    .content .game-content .tool-bar {
-      /*display: none;*/
-    }
     .chat-box .chat-list li .chat-icon {
       display: none;
     }
@@ -802,11 +795,14 @@ export default {
       font-weight: bold;
     }
     .ready-content {
-      height: 56%;
+      height: 46%;
       flex: 0 0 auto;
     }
+    .ready-content li img {
+      width: 70%;
+    }
     .ready-content li p {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
     }
   }
