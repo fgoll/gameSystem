@@ -3,7 +3,7 @@
     <div class="header">
       <div class="time-box">
         <p>time</p>
-        <p class="big-font">{{ duration }}</p>
+        <p class="big-font">{{ roomDuration }}</p>
       </div>
       <div class="title-box">
         <p>{{ room.game_type }}</p>
@@ -14,7 +14,7 @@
     <div class="content">
       <ul class="user-list">
         <li
-          v-for="(u, index) in army1"
+          v-for="(u, index) in whiteArmy"
           :key="index"
           :class="{ current: u != null && u.status == 'action',
                     trusteeship: u != null && u.trusteeship == 'auto' }"
@@ -28,8 +28,8 @@
           </template>
         </li>
         <li
-          v-for="(u, index) in army2"
-          :key="index"
+          v-for="(u, index) in blackArmy"
+          :key="whiteArmy.length + index"
           :class="{ current: u != null && u.status == 'action',
                     trusteeship: u != null && u.trusteeship == 'auto' }"
           class="black-army"
@@ -44,10 +44,11 @@
       </ul>
       <ul v-show="room.status != 'playing'" class="ready-content">
         <li
-          v-for="(u, index) in army1"
+          v-for="(u, index) in whiteArmy"
           :key="index"
+          :data-id="index"
           :class="{ isself: u != null && u.u_id == user.id }"
-          @click="changeToWhitePos(index)"
+          @click="changePos"
         >
           <!--{{ u.u_id }}-->
           <span class="index index1">{{ index + 1 }}</span>
@@ -60,10 +61,11 @@
 
         </li>
         <li
-          v-for="(u, index) in army2"
-          :key="index"
+          v-for="(u, index) in blackArmy"
+          :key="whiteArmy.length + index"
+          :data-id="whiteArmy.length + index"
           :class="{ isself: u != null && u.u_id == user.id }"
-          @click="changeToBlackPos(index)"
+          @click="changePos"
         >
           <!--{{ u.u_id }}-->
           <span class="index index2">{{ index + 1 }}</span>
@@ -129,6 +131,9 @@
 
 <script>
 import RoomMixins from '@/mixins/room.mixins';
+import {
+  changePos,
+} from '@/pack/send/room';
 
 export default {
   mixins: [RoomMixins],
@@ -141,7 +146,12 @@ export default {
     };
   },
   computed: {
-
+    whiteArmy() {
+      return this.room.users.slice(0, 3);
+    },
+    blackArmy() {
+      return this.room.users.slice(3, 6);
+    },
   },
   watch: {
 
@@ -158,14 +168,23 @@ export default {
     trusteeship() {
 
     },
-    changeToWhitePos() {
+    changePos(e) {
+      const pos = e.target.dataset.id;
+      const targetUser = this.room.users[pos];
+      if (!targetUser) {
+        if (this.roomUser.status === 'waiting') {
+          changePos({
+            op_id: this.roomUser.p_id,
+            p_id: pos,
+            room_id: this.user.roomId,
+          });
+        }
 
-    },
-    changeToBlackPos() {
-
-    },
-    changePos() {
-
+        return;
+      }
+      if (+targetUser.u_id !== +this.user.id) {
+        this.$message.error('this position have people');
+      }
     },
   },
 };

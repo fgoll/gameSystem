@@ -6,7 +6,7 @@
         <p class="big-font">{{ roomDuration }}</p>
       </div>
       <div class="title-box">
-        <p>Draw</p>
+        <p>{{ room.game_type }}</p>
         <!--{{topic.topic_title}}-->
         <p class="big-font">{{ roomUser.status == 'action' ? roomUser.topic.topic_title : '' }}</p>
       </div>

@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Loading } from 'element-ui';
+import { Loading, Message } from 'element-ui';
 import { login } from './pack/recv/login';
 import { user, hall } from './pack/recv/hall';
 import { room, draw } from './pack/recv/room';
@@ -10,6 +10,8 @@ const [url, port] = [process.env.VUE_APP_URL, process.env.VUE_APP_PORT];
 export const client = new WebSocket(`ws:${url}:${port}`);
 
 let loadingInstance;
+
+let overtimeTimer;
 
 function messageHanlder(packet) {
   const [action, status] = packet.header.split('.');
@@ -43,6 +45,7 @@ client.onopen = () => {
 };
 
 client.onmessage = ({ data }) => {
+  if (overtimeTimer) clearTimeout(overtimeTimer);
   const packet = JSON.parse(data);
   console.log(packet);
 
@@ -58,10 +61,18 @@ client.onmessage = ({ data }) => {
  */
 export const send = (obj, loading = false) => {
   client.send(JSON.stringify(obj));
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`send: ${JSON.stringify(obj)}`);
+  }
 
   if (loading) {
     loadingInstance = Loading.service({ fullscreen: true });
   }
+
+  overtimeTimer = setTimeout(() => {
+    Message.error('overtime...');
+    if (loadingInstance) loadingInstance.close();
+  }, 10000);
 };
 
 export const close = () => {

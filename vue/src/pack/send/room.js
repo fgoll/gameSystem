@@ -20,6 +20,13 @@ export const leave = (data) => {
   }, true);
 };
 
+export const changePos = (data) => {
+  send({
+    header: 'change_position',
+    data,
+  }, true);
+};
+
 // draw
 export const drawStart = (data) => {
   send({
@@ -53,3 +60,5 @@ export const next = (data) => {
     data,
   });
 };
+
+// chess
