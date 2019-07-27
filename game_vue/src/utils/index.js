@@ -39,5 +39,4 @@ export const getEvents = () => {
   event.EVENT_CANCEL = 'touchcancel';
   event.EVENT_CLICK = 'click';
   return event;
-}
-;
+};
