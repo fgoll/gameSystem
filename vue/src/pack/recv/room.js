@@ -1,7 +1,7 @@
+/* eslint-disable no-case-declarations */
 import Bus from '@/utils/bus';
 import inject from './inject';
 
-// eslint-disable-next-line import/prefer-default-export
 export const room = inject((status, packet, { commit, dispatch }, router) => {
   const { data } = packet;
 
@@ -55,6 +55,26 @@ export const draw = inject((status, packet) => {
     case 'clear':
       Bus.$emit('drawclear');
       break;
+    default:
+      break;
+  }
+});
+
+export const chess = inject((status, packet, { commit }) => {
+  const { data } = packet;
+
+  const roleMap = {
+    black: 1,
+    white: 2,
+  };
+
+  switch (status) {
+    case 'down':
+      const { i: x, j: y, army_type: role } = data;
+
+      commit('chess/ADD_CHESSMAN', { position: [x, y], role: roleMap[role] });
+      break;
+
     default:
       break;
   }

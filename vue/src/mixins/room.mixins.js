@@ -64,7 +64,7 @@ export default {
 
     room(val) {
       if (val.status === 'playing') {
-        window.onresize();
+        if (window.onresize) { window.onresize(); }
       }
     },
   },

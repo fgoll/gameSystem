@@ -6,6 +6,8 @@ const state = {
   timeover: false,
 };
 
+let timer;
+
 const actions = {
   clearMessage({ commit }) {
     commit('SET_ROOM_MESSAGE');
@@ -13,7 +15,7 @@ const actions = {
 
   countdown({ dispatch, commit, state }) {
     if (state.duration > 0) {
-      setTimeout(() => {
+      timer = setTimeout(() => {
         commit('SET_ROOM_DURATION', state.duration - 1);
         dispatch('countdown');
       }, 1000);
@@ -21,6 +23,7 @@ const actions = {
   },
 
   begin({ dispatch, commit }, duration) {
+    if (timer) clearTimeout(timer);
     commit('SET_ROOM_DURATION', duration);
     dispatch('countdown');
   },

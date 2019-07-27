@@ -62,3 +62,9 @@ export const next = (data) => {
 };
 
 // chess
+export const chessDown = (data) => {
+  send({
+    header: 'chess_down',
+    data,
+  });
+};

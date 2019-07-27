@@ -79,7 +79,47 @@
         </li>
       </ul>
       <div v-show="room.status == 'playing'" class="game-content">
-        <canvas id="cas" />
+        <div ref="board" class="board">
+          <div
+
+            class="board-inner"
+            @click="click"
+          >
+            <div>
+              <div v-for="(row, rIndex) in board" :key="rIndex">
+                <template v-for="(col, cIndex) in row">
+                  <div
+                    v-if="col"
+                    :key="cIndex"
+                    class="chessman"
+                    :class="(col === 1 ? 'black' : 'white') +
+                      (isLast([rIndex, cIndex]) ? ' last-step' : '') +
+                      (isFives([rIndex, cIndex]) ? ' fives' : '')"
+                    :style="{
+                      marginTop: (1.5 + rIndex*6.53) + '%',
+                      marginLeft: (1.5 + cIndex*6.53) + '%',
+                    }"
+                  />
+                </template>
+
+              </div>
+            </div>
+
+            <div
+              v-for="(step, index) in steps"
+              :key="index"
+              class="step"
+              :class="(step.role === 1 ? 'black' : 'white') + (isFives(step.position) ?
+                ' fives' : '')"
+              :style="{
+                marginTop: (1.5 + step.position[0]*6.53) + '%',
+                marginLeft: (1.5 + step.position[1]*6.53) + '%',
+              }"
+            >
+              {{ index+1 }}
+            </div>
+          </div>
+        </div>
         <div class="tool-bar">
 
           <div class="button" @click="trusteeship">
@@ -130,27 +170,41 @@
 </template>
 
 <script>
+import { mapGetters, mapMutations } from 'vuex';
 import RoomMixins from '@/mixins/room.mixins';
 import {
-  changePos,
+  changePos, chessDown,
 } from '@/pack/send/room';
+
+const BLACK = 1;
+const WHITE = 2;
 
 export default {
   mixins: [RoomMixins],
   data() {
     return {
-      canvas: null,
-      room_id: '',
       icon: 'gm.JPG',
       downed: false,
+
     };
   },
   computed: {
+    ...mapGetters([
+      'board',
+      'steps',
+      'fives',
+    ]),
     whiteArmy() {
       return this.room.users.slice(0, 3);
     },
     blackArmy() {
       return this.room.users.slice(3, 6);
+    },
+    role() {
+      return this.room.users.indexOf(this.roomUser) < 3 ? WHITE : BLACK;
+    },
+    armyType() {
+      return this.role === BLACK ? 'black' : 'white';
     },
   },
   watch: {
@@ -158,16 +212,80 @@ export default {
 
   },
   mounted() {
-
+    this.init();
   },
   destroyed() {
     window.onresize = null;
   },
   methods: {
+    ...mapMutations([
+      'chess/ADD_CHESSMAN',
+    ]),
+    init() {
+      const { board } = this.$refs;
+      const parent = board.parentNode;
+
+      function getSize() {
+        return {
+          width: parent.innerWidth || parent.clientWidth || 1000,
+          height: (parent.innerHeight
+                      || parent.clientHeight
+                      || parent.clientHeight
+                      || 600) - 50,
+        };
+      }
+
+      window.onresize = () => {
+        const {
+          width, height,
+        } = getSize();
+        const size = width > height ? height : width;
+        [board.style.width, board.style.height] = [`${size}px`, `${size}px`];
+      };
+    },
 
     trusteeship() {
 
     },
+    click(e) {
+      if (!this.canAction) return;
+      this.roomUser.status = 'playing';
+      let y = e.offsetX;
+      let x = e.offsetY;
+      const width = this.$refs.board.clientWidth;
+      const offset = width * 0.044;
+      const step = width * 0.065;
+      x = Math.floor((x + offset) / step) - 1;
+      y = Math.floor((y + offset) / step) - 1;
+
+      this.set([x, y]);
+    },
+
+    set(position) {
+      // if (this.status !== STATUS.PLAYING) return;
+
+      const [x, y] = position;
+
+      if (this.board[x][y] !== 0) {
+        throw new Error('NOT_EMPTY');
+      }
+
+      this['chess/ADD_CHESSMAN']({ position, role: this.role });
+
+      // this.status = STATUS.THINKING;
+      this.startTime = +new Date();
+
+
+      chessDown({
+        i: x,
+        j: y,
+        army: this.armyType,
+      });
+      // setTimeout(() => {
+      //   // this.handleAiPut(x, y);
+      // }, 1000);
+    },
+
     changePos(e) {
       const pos = e.target.dataset.id;
       const targetUser = this.room.users[pos];
@@ -186,11 +304,29 @@ export default {
         this.$message.error('this position have people');
       }
     },
+
+    isLast(p) {
+      if (!this.steps.length) return false;
+      const last = this.steps[this.steps.length - 1].position;
+
+      return last[0] === p[0] && last[1] === p[1];
+    },
+
+    isFives(p) {
+      if (!this.fives.length) return false;
+      for (let i = 0; i < this.fives.length; i++) {
+        const f = this.fives[i];
+        if (p[0] === f[0] && p[1] === f[1]) {
+          return true;
+        }
+      }
+      return false;
+    },
   },
 };
 </script>
 
-<style scoped>
+<style lang='scss' scoped>
   canvas {
     background: lightyellow;
   }
@@ -320,7 +456,7 @@ export default {
     overflow: hidden;
     border-radius: 5px;
     background: #fff;
-
+    position: relative;
   }
 
 
@@ -546,6 +682,7 @@ export default {
     .content .game-content {
       border-radius: 0;
       /*border: 1px solid #AA6008;*/
+      position: relative;
       border-top-color: transparent;
     }
     .chat-box .send-box .send-input textarea {
@@ -608,4 +745,82 @@ export default {
     }
   }
 
+
+.board {
+  margin: 0 auto;
+}
+.board-inner {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  position: relative;
+  background-image: url("../../assets/board.jpg");
+  background-size: 100%;
+}
+.chessman, .step {
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  user-select: none;
+}
+.chessman {
+  top: 0;
+  bottom: 0;
+  background-color: black;
+
+  &.white {
+    background-color: white;
+  }
+}
+
+.step {
+  color: white;
+  &.white {
+    color: black;
+  }
+}
+
+.last-step {
+  box-shadow: 0 0 0 .4rem rgba(255, 0, 0, 0.4);
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.8);
+  }
+  70% {
+    box-shadow: 0 0 0 .6rem rgba(255, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+  }
+}
+
+.fives {
+  animation: flash .8s infinite;
+  box-shadow: none;
+}
+.tool-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 </style>

@@ -10,6 +10,10 @@ const getters = {
 
   roomDuration: state => state.room.duration, // 倒计时
   roomMessages: state => state.room.messages,
+
+  board: state => state.chess.board,
+  steps: state => state.chess.steps,
+  fives: state => state.chess.fives,
 };
 
 

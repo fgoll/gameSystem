@@ -4,6 +4,7 @@ import Vuex from 'vuex';
 import user from './modules/user';
 import hall from './modules/hall';
 import room from './modules/room';
+import chess from './modules/chess';
 
 import getters from './getters';
 
@@ -14,6 +15,7 @@ const store = new Vuex.Store({
     user,
     hall,
     room,
+    chess,
   },
   getters,
 });
