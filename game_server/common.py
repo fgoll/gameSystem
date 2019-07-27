@@ -28,7 +28,7 @@ game_types = ['draw', 'chess']
 conn = torndb.Connection(host='127.0.0.1',
                          database='partyplay',
                          user='root',
-                         password='********', )
+                         password='jiang951', )
 # conn = torndb.Connection(host='127.0.0.1',
 #                          database='partyplay',
 #                          user='root',

@@ -47,7 +47,7 @@ class GameMessageHanlder:
             Packet(header='user.enter', data=user, msg=None).write_message_to(clients=self.clients)
             if len(current_users) > 0:
                 Packet(header='user.all', data=current_users, msg=None).write_message_to(self.client)
-            Packet(header='rooms.init', data=RoomTool.rooms(), msg=None).write_message_to(self.client)
+            Packet(header='hall.init', data=RoomTool.rooms(), msg=None).write_message_to(self.client)
         else:
             Packet(header='login.error', data=None, msg=msg).write_message_to(self.client)
 

@@ -1,54 +1,81 @@
-/**
- * Created by SwiftJ on 17/1/27.
- */
+/* eslint-disable no-shadow */
+import Vue from 'vue';
 
 const state = {
   users: [],
-  messages: []
-}
-
-const getters = {
-  users: state => state.users, // 对应所有用户
-  messages: state => state.messages // 对应大厅的所有信息
-}
+  messages: [],
+  rooms: [],
+  roomsMap: {},
+};
 
 const actions = {
-  clearMessage({ commit }) {
-    commit('Hall.CLEARMESSAGE')
+  enterRoom({ state }, id) {
+    return new Promise((resolve) => {
+      const roomType = state.roomsMap[+id].room.game_type;
+
+      resolve(roomType);
+    });
+  },
+};
+
+const getRoomsMap = (rooms) => {
+  const map = {};
+  for (let i = 0; i < rooms.length; i++) {
+    map[rooms[i].r_id] = {
+      index: i,
+      room: rooms[i],
+    };
   }
-}
+  return map;
+};
 
 const mutations = {
-  'Hall.ADDMESSAGE'(state, message) { // Hall大厅.ADDMESSAGE添加信息
-    state.messages.push(message)
+  SET_HALL_ROOM: (state, rooms) => {
+    state.rooms = rooms;
+    state.roomsMap = getRoomsMap(rooms);
   },
-  'Hall.CLEARMESSAGE'(state) {
-    state.messages.splice(0)
-  },
-  'Hall.USERENTER'(state, user) {
-    state.users.push(user)
-  },
-  'Hall.USERALL'(state, users) {
-    state.users.push.apply(state.users, users)
-  },
-  'Hall.USERLEAVE'(state, id) {
-    var delIndex = -1
-    for(let [index, user] of state.users.entries()) {
-
-      if (user.u_id === id) {
-        console.log(user)
-        delIndex = index
+  SET_HALL_ROOM_INFO: (state, newRoom) => {
+    const id = newRoom.r_id;
+    const { room } = state.roomsMap[id];
+    if (!room) return;
+    const { status } = newRoom;
+    if (status) room.status = status;
+    // Vue.set(state.rooms, index, room);
+    const { users } = newRoom;
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      if (room.users[i] !== user) {
+        Vue.set(room.users, i, user);
       }
     }
-    if (delIndex > -1) {
-      state.users.splice(delIndex, 1)
+    state.roomsMap = getRoomsMap(state.rooms);
+  },
+  SET_HALL_MESSAGE: (state, message) => {
+    if (message) {
+      state.messages.push(message);
+    } else {
+      state.messages = [];
     }
-  }
-}
+  },
+  SET_HALL_USER: (state, user) => {
+    if (Array.isArray(user)) {
+      state.users = [...state.users, ...user];
+    } else {
+      state.users.push(user);
+    }
+  },
+  DEL_HALL_USER: (state, id) => {
+    const index = state.users.findIndex(user => +user.u_id === +id);
+
+    if (index > -1) {
+      state.users.splice(index, 1);
+    }
+  },
+};
 
 export default {
+  namespaced: true,
   state,
-  getters,
   actions,
-  mutations
-}
+  mutations,
+};
