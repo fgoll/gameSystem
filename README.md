@@ -1,7 +1,7 @@
 ## gameSystem
 a python and vue gamesystem project for drawguess(你画我猜) and gobang(五子棋)
 
-## demo: [gamesystem link](http://111.230.174.196:8383/)
+## demo: [gamesystem link](http://game.swifterjh.com)
 test account:
 - username: zsh    password: 123
 - username: zyl    password: 123
