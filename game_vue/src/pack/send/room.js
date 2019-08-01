@@ -68,3 +68,11 @@ export const chessDown = (data) => {
     data,
   });
 };
+
+
+export const chessWin = (data) => {
+  send({
+    header: 'chess_win',
+    data,
+  });
+};

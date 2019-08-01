@@ -122,8 +122,8 @@
         </div>
         <div class="tool-bar">
 
-          <div class="button" @click="trusteeship">
-            {{ roomUser.trusteeship == 'auto' ? '取消托管' : '托管' }}
+          <div class="button" @click="switchTrusteeship">
+            {{ trusteeship ? '取消托管' : '托管' }}
           </div>
         </div>
       </div>
@@ -172,8 +172,12 @@
 <script>
 import { mapGetters, mapMutations } from 'vuex';
 import RoomMixins from '@/mixins/room.mixins';
+import ai from '@/ai';
+import SCORE from '@/ai/score';
+import win from '@/ai/win';
+
 import {
-  changePos, chessDown,
+  changePos, chessDown, chessWin,
 } from '@/pack/send/room';
 
 const BLACK = 1;
@@ -185,7 +189,7 @@ export default {
     return {
       icon: 'gm.JPG',
       downed: false,
-
+      trusteeship: false,
     };
   },
   computed: {
@@ -208,8 +212,12 @@ export default {
     },
   },
   watch: {
-
-
+    'roomUser.status': function _(status) {
+      if (status === 'action' && this.trusteeship) {
+        const [x, y] = this.steps[this.steps.length - 1].position;
+        this.handleAiPut(x, y);
+      }
+    },
   },
   mounted() {
     this.init();
@@ -244,9 +252,10 @@ export default {
       };
     },
 
-    trusteeship() {
-
+    switchTrusteeship() {
+      this.trusteeship = !this.trusteeship;
     },
+
     click(e) {
       if (!this.canAction) return;
       this.roomUser.status = 'playing';
@@ -268,13 +277,14 @@ export default {
 
       if (this.board[x][y] !== 0) {
         throw new Error('NOT_EMPTY');
+
       }
 
       this['chess/ADD_CHESSMAN']({ position, role: this.role });
 
       // this.status = STATUS.THINKING;
       this.startTime = +new Date();
-
+      if (this.status === 'locked') return;
 
       chessDown({
         i: x,
@@ -305,6 +315,25 @@ export default {
       }
     },
 
+    handleAiPut(x, y) {
+      const p = ai.turn(x, y);
+      const { score, step } = p;
+      this.set([p[0], p[1]]);
+      if (score >= SCORE.FIVE / 2) {
+        if (step <= 1) {
+          this.fives = win(this.board);
+          console.log('you lose');
+          this.status = 'locked';
+        }
+      } else if (score <= -SCORE.FIVE / 2) {
+        if (step <= 1) {
+          console.log('you win');
+          this.status = 'locked';
+          this.fives = win(this.board);
+          // chessWin(())
+        }
+      }
+    },
     isLast(p) {
       if (!this.steps.length) return false;
       const last = this.steps[this.steps.length - 1].position;
